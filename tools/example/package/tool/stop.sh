@@ -1,0 +1,1 @@
+echo 'echo "0"' > tool/status.sh
