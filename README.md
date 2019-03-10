@@ -243,8 +243,7 @@ Configure nginx to respond not or with redirect
             clients.l.google.com
             connectivitycheck.android.com
             connectivitycheck.gstatic.com
-            play.googleapis.com
-            ;
+            play.googleapis.com;
         listen 80;
     
         location / {
@@ -255,3 +254,36 @@ Configure nginx to respond not or with redirect
             rewrite ^(.*) http://on.lumi.education/captive_portal redirect;
         }
     }
+
+
+#### iOS (untested)
+
+Redirect checked domains to box
+
+    $ sudo nano /etc/dnsmasq.conf
+    
+Add these lines
+
+    address=/apple.com/192.168.4.1
+    address=/captive.apple.com/192.168.4.1
+    
+Configure nginx to respond not or with redirect
+
+    $ sudo nano /etc/nginx/conf.d/captive_portal.conf
+    
+    server {
+        server_name
+            apple.com
+            captive.apple.com;
+        listen 80;
+    
+        location / {
+            rewrite ^(.*) http://on.lumi.education/captive_portal redirect;
+        }
+    }
+
+
+#### Restart
+
+    $ sudo /etc/init.d/dnsmasq restart
+    $ sudo /etc/init.d/nginx restart
