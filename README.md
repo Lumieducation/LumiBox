@@ -203,7 +203,7 @@ Insert the lines
 
 	interface=wlan0
 	driver=nl80211
-	ssid=Lumi_WLAN
+	ssid=LumiLand
 	hw_mode=g
 	channel=7
 	wmm_enabled=0
@@ -211,7 +211,7 @@ Insert the lines
 	auth_algs=1
 	ignore_broadcast_ssid=0
 	wpa=2
-	wpa_passphrase=lumieducation
+	wpa_passphrase=education
 	wpa_key_mgmt=WPA-PSK
 	wpa_pairwise=TKIP
 	rsn_pairwise=CCMP
