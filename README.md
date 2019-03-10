@@ -175,10 +175,10 @@ Uncomment the line that contains
 	
 #### Virtual Host
 
-	$ sudo nano /etc/nginx/conf.d/lumi_box.conf
+	$ sudo nano /etc/nginx/conf.d/default.conf
 	
 	server {
-	  listen 80 default_server;
+	  listen 80;
 	  server_name on.lumi.education;
 
 	  location / {
@@ -216,3 +216,42 @@ Uncomment the line that contains
 	WantedBy=multi-user.target
 	
 	$ sudo systemctl enable lumi_box
+	
+### Captive Portal
+
+#### Android
+
+Redirect checked domains to box
+
+    $ sudo nano /etc/dnsmasq.conf
+    
+Add these lines
+
+    address=/clients3.google.com/192.168.4.1
+    address=/clients.l.google.com/192.168.4.1
+    address=/connectivitycheck.android.com/192.168.4.1
+    address=/connectivitycheck.gstatic.com/192.168.4.1
+    address=/play.googleapis.com/192.168.4.1
+    
+Configure nginx to respond not or with redirect
+
+    $ sudo nano /etc/nginx/conf.d/captive_portal.conf
+    
+    server {
+        server_name
+            clients3.google.com
+            clients.l.google.com
+            connectivitycheck.android.com
+            connectivitycheck.gstatic.com
+            play.googleapis.com
+            ;
+        listen 80;
+    
+        location / {
+            return 444;
+        }
+    
+        location /generate_204 {
+            rewrite ^(.*) http://on.lumi.education/captive_portal redirect;
+        }
+    }

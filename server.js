@@ -84,6 +84,12 @@ app.get('/shutdown', (req, res) =>
     .catch(console.log)
     .then(() => res.render('shutdown.html')));
 
+app.get('/assets/:file', (req, res) =>
+  res.sendFile(__dirname + '/assets/' + req.params.file));
+
+app.get('/captive_portal', (req, res) =>
+  res.render('captive_portal.html'));
+
 const server = app.listen(port, () =>
   console.log(`Listening on port ${server.address().port}`));
 
