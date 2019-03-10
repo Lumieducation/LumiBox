@@ -58,6 +58,8 @@ Create a compressed tar file that can be installed on box
 
 ## Installation
 
+For this installation, the RaspberryPi needs to have internet access over the Ethernet port.
+
 ### General set-up
 
 #### Update system
@@ -76,6 +78,73 @@ Add the line
 #### Install needed programs
 
 	$ sudo apt-get install curl git wget
+
+
+### Lumi Box Web Application
+
+#### Download and install web application
+
+    $ mkdir /lumi && cd /lumi
+    $ git clone https://github.com/Lumieducation/box.git
+    $ cd box
+    $ npm install
+
+#### Install and start nginx
+
+	$ sudo apt-get install nginx
+	$ sudo /etc/init.d/nginx start
+	
+#### Increase server name bucket size
+	
+	$ sudo /etc/nginx/nginx.conf
+	
+Uncomment the line that contains
+	
+	server_names_hash_bucket_size  64;
+	
+#### Virtual Host
+
+	$ sudo nano /etc/nginx/conf.d/default.conf
+	
+	server {
+	  listen 80;
+	  server_name on.lumi.education;
+
+	  location / {
+		proxy_pass_header Authorization;
+		proxy_pass http://localhost:4200;
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_http_version 1.1;
+		proxy_set_header Connection "";
+		proxy_buffering off;
+		client_max_body_size 0;
+		proxy_read_timeout 36000s;
+		proxy_redirect off;
+	  }
+	}
+
+#### Auto-start
+
+	$ sudo nano /etc/systemd/system/lumi_box.service
+	
+	[Unit]
+	Description=lumi_box
+	After=network.target
+
+	[Service]
+	ExecStart=/usr/bin/node server.js
+	Restart=always
+	User=root
+	Group=root
+	Environment=PATH=/bin:/usr/bin:/usr/local/bin
+	WorkingDirectory=/lumi/box/
+
+	[Install]
+	WantedBy=multi-user.target
+	
+	$ sudo systemctl enable lumi_box
 
 
 ### Docker
@@ -157,65 +226,6 @@ Insert the lines
 	$ sudo systemctl start dnsmasq
 	$ sudo reboot
 	
-	
-### Box Web Application
-
-#### Install and start nginx
-
-	$ sudo apt-get install nginx
-	$ sudo /etc/init.d/nginx start
-	
-#### Increase server name bucket size
-	
-	$ sudo /etc/nginx/nginx.conf
-	
-Uncomment the line that contains
-	
-	server_names_hash_bucket_size  64;
-	
-#### Virtual Host
-
-	$ sudo nano /etc/nginx/conf.d/default.conf
-	
-	server {
-	  listen 80;
-	  server_name on.lumi.education;
-
-	  location / {
-		proxy_pass_header Authorization;
-		proxy_pass http://localhost:4200;
-		proxy_set_header Host $host;
-		proxy_set_header X-Real-IP $remote_addr;
-		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-		proxy_http_version 1.1;
-		proxy_set_header Connection "";
-		proxy_buffering off;
-		client_max_body_size 0;
-		proxy_read_timeout 36000s;
-		proxy_redirect off;
-	  }
-	}
-
-#### Auto-start
-
-	$ sudo nano /etc/systemd/system/lumi_box.service
-	
-	[Unit]
-	Description=lumi_box
-	After=network.target
-
-	[Service]
-	ExecStart=/usr/bin/node server.js
-	Restart=always
-	User=root
-	Group=root
-	Environment=PATH=/bin:/usr/bin:/usr/local/bin
-	WorkingDirectory=/lumi/box/
-
-	[Install]
-	WantedBy=multi-user.target
-	
-	$ sudo systemctl enable lumi_box
 	
 ### Captive Portal
 
