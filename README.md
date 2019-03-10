@@ -16,14 +16,14 @@ This project is highly experimental and should not be used in production.
 	| | |-remove.sh
 	| | |-start.sh
 	| | |-stop.sh
-	| | '-status.sh			// should echo `0` if tool is not running
+	| | '-status.sh         // should echo `0` if tool is not running
 	| |
 	| '-...
 	|
 	|-package<target>       // target-specific content of the tar file
 	| '-...
 	|
-	'-src					// files used for image-building
+	'-src                   // files used for image-building
 	  '-...
 
 
