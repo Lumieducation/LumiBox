@@ -54,7 +54,9 @@
 
 <h4>Shutdown</h4>
 <p>To avoid data corruption, always shutdown before unplugging the Box.</p>
-<a href="/shutdown" onclick="return confirm('Shutdown Lumi Box?')">[shutdown]</a>
+<form action="/shutdown" method="post">
+    <input type="submit" onclick="return confirm('Shutdown Lumi Box?')" value="shutdown">
+</form>
 
 </body>
 </html>

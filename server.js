@@ -79,10 +79,11 @@ app.get('/:tool/remove', (req, res) =>
     .catch(console.log)
     .then(() => res.redirect('back')));
 
-app.get('/shutdown', (req, res) =>
-  execute(`sudo shutdown 0`)
+app.post('/shutdown', (req, res) => {
+  res.render('shutdown.html');
+  execute(`sleep 1 && sudo shutdown now`)
     .catch(console.log)
-    .then(() => res.render('shutdown.html')));
+});
 
 app.get('/assets/:file', (req, res) =>
   res.sendFile(__dirname + '/assets/' + req.params.file));
