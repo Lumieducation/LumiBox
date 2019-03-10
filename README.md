@@ -229,9 +229,7 @@ Insert the lines
 	
 ### Captive Portal
 
-#### Android
-
-Redirect checked domains to box
+#### Rewrite DNS
 
     $ sudo nano /etc/dnsmasq.conf
     
@@ -242,8 +240,16 @@ Add these lines
     address=/connectivitycheck.android.com/192.168.4.1
     address=/connectivitycheck.gstatic.com/192.168.4.1
     address=/play.googleapis.com/192.168.4.1
+
+    address=/apple.com/192.168.4.1
+    address=/captive.apple.com/192.168.4.1
     
-Configure nginx to respond not or with redirect
+    address=/msftncsi.com/192.168.4.1
+    address=/.msftncsi.com/192.168.4.1
+    address=/msftconnecttest.com/192.168.4.1
+    address=/.msftconnecttest.com/192.168.4.1
+    
+#### Redirect to Captive Portal
 
     $ sudo nano /etc/nginx/conf.d/captive_portal.conf
     
@@ -264,27 +270,18 @@ Configure nginx to respond not or with redirect
             rewrite ^(.*) http://on.lumi.education/captive_portal redirect;
         }
     }
-
-
-#### iOS (untested)
-
-Redirect checked domains to box
-
-    $ sudo nano /etc/dnsmasq.conf
-    
-Add these lines
-
-    address=/apple.com/192.168.4.1
-    address=/captive.apple.com/192.168.4.1
-    
-Configure nginx to respond not or with redirect
-
-    $ sudo nano /etc/nginx/conf.d/captive_portal.conf
     
     server {
         server_name
             apple.com
-            captive.apple.com;
+            captive.apple.com
+            msftncsi.com
+            www.msftncsi.com
+            dns.msftncsi.com
+            ipv6.msftncsi.com
+            msftconnecttest.com
+            www.msftconnecttest.com
+            ipv6.msftconnecttest.com;
         listen 80;
     
         location / {
@@ -292,8 +289,7 @@ Configure nginx to respond not or with redirect
         }
     }
 
-
-#### Restart
+#### Restart Services
 
     $ sudo /etc/init.d/dnsmasq restart
     $ sudo /etc/init.d/nginx restart
