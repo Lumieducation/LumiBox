@@ -2,7 +2,7 @@ const express = require('express');
 const busboy = require('connect-busboy');
 const path = require('path');
 const fs = require('fs-extra');
-const whiskers = require('whiskers');
+const react_views = require('express-react-views');
 const os = require('os');
 
 const sys = require('sys');
@@ -21,7 +21,8 @@ fs.ensureDir(nginxConfigDir);
 
 const app = express();
 app.use(busboy({ highWaterMark: 2 * 1024 * 1024 }));
-app.engine('.html', whiskers.__express);
+app.set('view engine', 'jsx');
+app.engine('jsx', react_views.createEngine());
 
 app.get('/', (req, res) => {
     const GB = n => Math.round((n / (1024 * 1024 * 1024)) * 100) / 100 + 'GB';
@@ -65,7 +66,7 @@ app.get('/', (req, res) => {
                 )
             )
             .then(tools =>
-                res.render('index.html', {
+                res.render('index', {
                     space: space.toString(),
                     memory:
                         GB(os.freemem()) +
@@ -143,7 +144,7 @@ app.get('/:tool/remove', (req, res) =>
 );
 
 app.post('/shutdown', (req, res) => {
-    res.render('shutdown.html');
+    res.render('Shutdown');
     execute(`sleep 1 && sudo shutdown now`).catch(console.log);
 });
 
@@ -151,7 +152,7 @@ app.get('/assets/:file', (req, res) =>
     res.sendFile(__dirname + '/assets/' + req.params.file)
 );
 
-app.get('/captive_portal', (req, res) => res.render('captive_portal.html'));
+app.get('/captive_portal', (req, res) => res.render('CaptivePortal'));
 
 const server = app.listen(port, () =>
     console.log(`Listening on port ${server.address().port}`)
