@@ -134,7 +134,7 @@ Uncomment the line that contains
 	After=network.target
 
 	[Service]
-	ExecStart=/usr/bin/node server.js
+	ExecStart=/usr/bin/node src/server.js
 	Restart=always
 	User=root
 	Group=root

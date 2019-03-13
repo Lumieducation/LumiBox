@@ -4,11 +4,13 @@
   "description": "Manage ZIM files for kiwix-serve",
   "main": "server.js",
   "scripts": {
-    "test": "mocha test"
+    "test": "mocha test",
+    "format": "prettier -c 'src/**/*.js' --write"
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "mocha": "^5.2.0"
+    "mocha": "^5.2.0",
+    "prettier": "1.16.4"
   },
   "dependencies": {
     "connect-busboy": "0.0.2",

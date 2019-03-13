@@ -22,6 +22,7 @@ fs.ensureDir(nginxConfigDir);
 const app = express();
 app.use(busboy({ highWaterMark: 2 * 1024 * 1024 }));
 app.engine('.html', whiskers.__express);
+app.set('views', __dirname + '/views');
 
 app.get('/', (req, res) => {
     const GB = n => Math.round((n / (1024 * 1024 * 1024)) * 100) / 100 + 'GB';
