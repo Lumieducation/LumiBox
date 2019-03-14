@@ -228,68 +228,34 @@ Insert the lines
 	
 	
 ### Captive Portal
-
-#### Rewrite DNS
-
-    $ sudo nano /etc/dnsmasq.conf
     
-Add these lines
+#### Redirect any request to Pi's IP
 
-    address=/clients3.google.com/192.168.4.1
-    address=/clients.l.google.com/192.168.4.1
-    address=/connectivitycheck.android.com/192.168.4.1
-    address=/connectivitycheck.gstatic.com/192.168.4.1
-    address=/play.googleapis.com/192.168.4.1
-
-    address=/apple.com/192.168.4.1
-    address=/captive.apple.com/192.168.4.1
+    $ sudo iptables -t nat -A PREROUTING -p tcp -m tcp -s 192.168.4.0/24 --dport 80 -j DNAT --to-destination 192.168.4.1
+    $ sudo iptables -t nat -A POSTROUTING -j MASQUERADE
     
-    address=/msftncsi.com/192.168.4.1
-    address=/.msftncsi.com/192.168.4.1
-    address=/msftconnecttest.com/192.168.4.1
-    address=/.msftconnecttest.com/192.168.4.1
+#### Apply rules on boot
     
-#### Redirect to Captive Portal
+    $ sudo bash -c 'iptables-save > /etc/network/iptables'
+    
+    $ sudo nano /etc/rc.local
+    
+Add this line before `exit 0`
+    
+    iptables-restore /etc/network/iptables
+    
+#### Redirect any URL Captive Portal
 
     $ sudo nano /etc/nginx/conf.d/captive_portal.conf
     
     server {
-        server_name
-            clients3.google.com
-            clients.l.google.com
-            connectivitycheck.android.com
-            connectivitycheck.gstatic.com
-            play.googleapis.com;
-        listen 80;
-    
-        location / {
-            return 444;
-        }
-    
-        location /generate_204 {
-            rewrite ^(.*) http://on.lumi.education/captive_portal redirect;
-        }
-    }
-    
-    server {
-        server_name
-            apple.com
-            captive.apple.com
-            msftncsi.com
-            www.msftncsi.com
-            dns.msftncsi.com
-            ipv6.msftncsi.com
-            msftconnecttest.com
-            www.msftconnecttest.com
-            ipv6.msftconnecttest.com;
-        listen 80;
+        listen 80 default_server;
     
         location / {
             rewrite ^(.*) http://on.lumi.education/captive_portal redirect;
         }
     }
+    
+Restart nginx
 
-#### Restart Services
-
-    $ sudo /etc/init.d/dnsmasq restart
     $ sudo /etc/init.d/nginx restart
