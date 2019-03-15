@@ -3,16 +3,16 @@ const http = require('http');
 const port = process.env.PORT || 3000;
 
 const requestHandler = (request, response) => {
-  console.log(request.url);
-  response.end('Hello Lumi Box!')
+    console.log(request.url);
+    response.end('Hello Lumi Box!');
 };
 
-const server = http.createServer(requestHandler)
+const server = http.createServer(requestHandler);
 
-server.listen(port, (err) => {
-  if (err) {
-    return console.log('something bad happened', err)
-  }
+server.listen(port, err => {
+    if (err) {
+        return console.log('something bad happened', err);
+    }
 
-  console.log(`server is listening on ${port}`)
+    console.log(`server is listening on ${port}`);
 });
