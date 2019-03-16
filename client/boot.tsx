@@ -4,6 +4,7 @@ import { Provider } from "react-redux";
 import { Route, Switch } from "react-router-dom";
 import { history, default as store } from "./store";
 import { ConnectedRouter } from "connected-react-router";
+import { hot } from 'react-hot-loader/root';
 
 // themes
 import { MuiThemeProvider } from "@material-ui/core/styles";
@@ -17,7 +18,7 @@ ReactDOM.render(
     <ConnectedRouter history={history}>
       <MuiThemeProvider theme={theme}>
         <Switch>
-          <Route path="/" component={Root} />
+          <Route path="/" component={hot(Root)} />
         </Switch>
       </MuiThemeProvider>
     </ConnectedRouter>

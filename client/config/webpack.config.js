@@ -7,7 +7,8 @@ module.exports = {
   mode: "development",
   devServer: {
     contentBase: "./build",
-    historyApiFallback: true
+    historyApiFallback: true,
+    hot: true
   },
   module: {
     rules: [
