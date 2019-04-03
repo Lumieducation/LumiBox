@@ -29,14 +29,15 @@ export default function callAPIMiddleware({ dispatch, getState }) {
         const [requestType, successType, failureType] = types;
 
         dispatch({
-            payload,
+            ...payload,
             type: requestType
         });
 
         return api.then(
             response => {
                 dispatch({
-                    payload: response,
+                    ...payload,
+                    response,
                     type: successType
                 });
                 return response;
@@ -45,8 +46,8 @@ export default function callAPIMiddleware({ dispatch, getState }) {
             error => {
                 dispatch(
                     assign({
-                        error,
-                        payload,
+                        ...payload,
+                        response: error,
                         type: failureType
                     })
                 );
