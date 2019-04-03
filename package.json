@@ -77,6 +77,13 @@
         ],
         "snapshotSerializers": [
             "enzyme-to-json/serializer"
-        ]
+        ],
+        "globals": {
+            "ts-jest": {
+              "diagnostics": {
+                "ignoreCodes": [151001]
+              }
+            }
+          }
     }
 }
