@@ -6,6 +6,13 @@ export function set_tools(tools: ITool[]) {
     _tools = tools;
 }
 
+let _response = {};
+let _fail = false;
+
+export function set_response(fail: boolean, response: any) {
+    _response = response;
+    _fail = fail;
+}
 export function get_tools(): Promise<ITool[]> {
     return new Promise((y, n) => {
         setTimeout(() => {
@@ -27,28 +34,18 @@ export function get_tools(): Promise<ITool[]> {
     });
 }
 
-export function start_tool(tool_id: string): Promise<ITool> {
+export function start_tool(tool_id: string): Promise<boolean> {
     return new Promise((y, n) => {
         setTimeout(() => {
-            y({
-                _id: tool_id,
-                name: 'test',
-                logo_url: '',
-                status: 'running'
-            });
+            y(true);
         }, 5000);
     });
 }
 
-export function stop_tool(tool_id: string): Promise<ITool> {
+export function stop_tool(tool_id: string): Promise<boolean> {
     return new Promise((y, n) => {
         setTimeout(() => {
-            y({
-                _id: tool_id,
-                name: 'test',
-                logo_url: '',
-                status: 'stopped'
-            });
+            y(true);
         }, 5000);
     });
 }
