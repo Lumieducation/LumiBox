@@ -155,7 +155,7 @@ app.get('/assets/:file', (req, res) =>
 app.get('/captive_portal', (req, res) => res.render('captive_portal.html'));
 
 const server = app.listen(port, () =>
-    console.log(`Listening on port ${server.address().port}`)
+    console.log(`Listening on http://localhost:${server.address().port}`)
 );
 
 const installVirtualHost = toolName => {

@@ -3,8 +3,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
-    entry: './client/boot.tsx',
-    mode: 'development',
+    entry: './src/boot.tsx',
+    mode: 'production',
     devServer: {
         contentBase: './build',
         historyApiFallback: true,
@@ -20,11 +20,7 @@ module.exports = {
         ]
     },
     resolve: {
-        extensions: ['.tsx', '.ts', '.js'],
-        alias: {
-            lib: path.resolve(__dirname, '../../lib'),
-            client: path.resolve(__dirname, '../../client')
-        }
+        extensions: ['.tsx', '.ts', '.js']
     },
     output: {
         filename: 'client.js',
@@ -32,8 +28,8 @@ module.exports = {
     },
     plugins: [
         new HtmlWebpackPlugin({
-            template: 'client/index.html'
+            template: 'src/index.html'
         }),
-        new CopyPlugin([{ from: 'client/assets', to: 'assets' }])
+        new CopyPlugin([{ from: 'src/assets', to: 'assets' }])
     ]
 };

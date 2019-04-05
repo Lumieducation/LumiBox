@@ -1,12 +1,11 @@
 {
-    "name": "lumibox-manager",
+    "name": "lumibox-client",
     "version": "0.0.1",
     "description": "Manage the LumiBox",
-    "main": "server.js",
     "scripts": {
         "test:update": "jest --watch",
-        "start": "./node_modules/.bin/webpack-dev-server --config ./client/config/webpack.dev.config.js",
-        "build": "./node_modules/.bin/webpack --config ./client/config/webpack.prod.config.js",
+        "start": "./node_modules/.bin/webpack-dev-server --config ./src/config/webpack.dev.config.js",
+        "build": "./node_modules/.bin/webpack --config ./src/config/webpack.prod.config.js",
         "postinstall": "ln -s ../lib node_modules/lib && npm run build",
         "uninstall": "rm -rf node_modules/ && rm -rf build/",
         "format": "prettier -c 'src/**/*.js' --write"
@@ -48,20 +47,15 @@
         "webpack-dev-server": "^3.2.1"
     },
     "dependencies": {
-        "connect-busboy": "0.0.2",
-        "dotenv": "^6.2.0",
-        "express": "^4.16.4",
-        "fs-extra": "^7.0.1",
         "lodash": "^4.17.11",
         "webpack": "^4.29.6",
-        "webpack-cli": "^3.2.3",
-        "whiskers": "^0.4.0"
+        "webpack-cli": "^3.2.3"
     },
     "jest": {
         "transform": {
             "^.+\\.tsx?$": "ts-jest"
         },
-        "testRegex": "(server|client|lib/*/__tests__/.*|(\\.|/)(test|spec))\\.(tsx?)$",
+        "testRegex": "(src|lib/*/__tests__/.*|(\\.|/)(test|spec))\\.(tsx?)$",
         "moduleFileExtensions": [
             "ts",
             "tsx",
@@ -71,9 +65,8 @@
         ],
         "moduleDirectories": [
             "node_modules",
-            "client",
-            "lib",
-            "server"
+            "src",
+            "lib"
         ],
         "snapshotSerializers": [
             "enzyme-to-json/serializer"
