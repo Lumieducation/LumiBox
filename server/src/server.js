@@ -46,10 +46,7 @@ const execute = command =>
         });
     });
 
-setInterval(() => {
-    if (Object.keys(subscriptions['/resources']).length)
-        update('/resources')
-}, 5000)
+setInterval(() => update('/resources'), 5000)
 
 
 /**
@@ -77,10 +74,15 @@ app.get('*', (req, res) => {
 
 const subscriptions = Object.keys(queries).reduce((acc, i) => ({ ...acc, [i]: {} }), {})
 
-const update = query =>
+const hasSubscriptions = query => !!Object.keys(subscriptions[query]).length
+
+const update = query => {
+    if (!hasSubscriptions(query)) return;
+     
     queries[query]().then(result =>
         Object.values(subscriptions[query]).forEach(client =>
             client.emit('update', { query, result })))
+}
 
 const io = socket(server);
 io.on('connection', client => {
