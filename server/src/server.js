@@ -1,200 +1,40 @@
 const express = require('express');
-const busboy = require('connect-busboy');
 const path = require('path');
-const fs = require('fs-extra');
-const whiskers = require('whiskers');
+const socket = require('socket.io');
 const os = require('os');
-
-const sys = require('sys');
 const exec = require('child_process').exec;
 
-require('dotenv').config();
+/**
+ * Domain
+ */
 
-const port = process.env.PORT || 4200;
-const basePort = parseInt(process.env.BASE_PORT) || 4201;
-const boxDomain = process.env.BOX_DOMAIN || 'localhost';
-const toolsDir = process.env.TOOLS_DIR || 'local/tools';
-const nginxConfigDir = process.env.NGINX_CONFIG_DIR || 'local/nginx_conf';
+const queries = {
 
-fs.ensureDir(toolsDir);
-fs.ensureDir(nginxConfigDir);
+    '/resources': () =>
+        execute('df -h /')
+            .then(parseSpace)
+            .then(disk => Promise.resolve(({
+                date: new Date().toISOString(),
+                memory: memory(os.totalmem() - os.freemem(), os.totalmem()),
+                disk
+            })))
+}
 
-const app = express();
-app.use(busboy({ highWaterMark: 2 * 1024 * 1024 }));
-app.engine('.html', whiskers.__express);
-app.set('views', __dirname + '/views');
+const parseSpace = space => {
+    const parts = space.split('\n')[1].replace(/\s+/g, ' ').split(' ');
+    return {
+        used: parts[2],
+        total: parts[1],
+        percentage: parts[4]
+    }
+}
 
-app.get('/', (req, res) => {
-    const GB = n => Math.round((n / (1024 * 1024 * 1024)) * 100) / 100 + 'GB';
-    var perc = Math.round((os.freemem() / os.totalmem()) * 100);
-
-    execute('df -h /').then(space =>
-        execute(`ls ${toolsDir}`)
-            .then(tools =>
-                Promise.all(
-                    tools
-                        .toString()
-                        .split('\n')
-                        .filter(s => s.length)
-                        .map(tool =>
-                            readJson(`${toolsDir}/${tool}/tool/meta.json`)
-                        )
-                )
-            )
-            .then(tools =>
-                Promise.all(
-                    tools.map(tool =>
-                        fileExists(`${toolsDir}/${tool.name}/__installing.lock`)
-                            .then(installing =>
-                                installing
-                                    ? 'pending'
-                                    : execute(
-                                          `cd ${toolsDir}/${
-                                              tool.name
-                                          } && sh tool/status.sh`
-                                      ).then(status =>
-                                          status != '0' ? 'running' : 'stopped'
-                                      )
-                            )
-                            .then(status => ({
-                                ...tool,
-                                status,
-                                installed: status != 'pending',
-                                running: status == 'running'
-                            }))
-                    )
-                )
-            )
-            .then(tools =>
-                res.render('index.html', {
-                    space: space.toString(),
-                    memory:
-                        GB(os.freemem()) +
-                        ' / ' +
-                        GB(os.totalmem()) +
-                        ' (' +
-                        perc +
-                        '%)',
-                    tools: tools,
-                    boxDomain
-                })
-            )
-    );
-});
-
-app.route('/install').post((req, res) => {
-    const tmpFolder = path.join('upload', '_tmp' + Date.now());
-
-    upload(req, 'upload')
-        .then(filePath =>
-            execute(`mkdir ${tmpFolder}`)
-                .then(() => execute(`tar -xf ${filePath} -C ${tmpFolder}`))
-                .then(() => readJson(`${tmpFolder}/tool/meta.json`))
-                .then(manifest =>
-                    execute(`mv ${tmpFolder} ${toolsDir}/${manifest.name}`)
-                        .then(() => res.redirect('back'))
-                        .then(() =>
-                            execute(
-                                `touch ${toolsDir}/${
-                                    manifest.name
-                                }/__installing.lock`
-                            )
-                        )
-                        .then(() => installVirtualHost(manifest.name))
-                        .then(port =>
-                            execute(
-                                `cd ${toolsDir}/${
-                                    manifest.name
-                                } && TOOL_PORT=${port} sh tool/install.sh`
-                            )
-                        )
-                        .then(() => execute(`rm ${filePath}`))
-                        .then(() =>
-                            execute(
-                                `rm ${toolsDir}/${
-                                    manifest.name
-                                }/__installing.lock`
-                            )
-                        )
-                )
-        )
-        .catch(console.log);
-});
-
-app.get('/:tool/start', (req, res) =>
-    execute(`cd ${toolsDir}/${req.params.tool} && sh tool/start.sh`)
-        .catch(console.log)
-        .then(() => res.redirect('back'))
-);
-
-app.get('/:tool/stop', (req, res) =>
-    execute(`cd ${toolsDir}/${req.params.tool} && sh tool/stop.sh`)
-        .catch(console.log)
-        .then(() => res.redirect('back'))
-);
-
-app.get('/:tool/remove', (req, res) =>
-    removeVirtualHost(req.params.tool)
-        .then(() =>
-            execute(`cd ${toolsDir}/${req.params.tool} && sh tool/remove.sh`)
-        )
-        .then(() => execute(`rm -rf ${toolsDir}/${req.params.tool}`))
-        .catch(console.log)
-        .then(() => res.redirect('back'))
-);
-
-app.post('/shutdown', (req, res) => {
-    res.render('shutdown.html');
-    execute(`sleep 1 && sudo shutdown now`).catch(console.log);
-});
-
-app.get('/assets/:file', (req, res) =>
-    res.sendFile(__dirname + '/assets/' + req.params.file)
-);
-
-app.get('/captive_portal', (req, res) => res.render('captive_portal.html'));
-
-const server = app.listen(port, () =>
-    console.log(`Listening on http://localhost:${server.address().port}`)
-);
-
-const installVirtualHost = toolName => {
-    let freePort = basePort;
-
-    return readJson('used_ports.json')
-        .catch(() => ({}))
-        .then(usedPorts => {
-            while (Object.values(usedPorts).indexOf(freePort) > -1) freePort++;
-            usedPorts[toolName] = freePort;
-            return writeJson('used_ports.json', usedPorts);
-        })
-        .then(() => readFile('nginx_virtual_host.conf.template'))
-        .then(template =>
-            whiskers.render(template, {
-                tool: { name: toolName, port: freePort },
-                box: { domain: boxDomain }
-            })
-        )
-        .then(conf =>
-            writeFile(`${nginxConfigDir}/lumi_${toolName}.conf`, conf)
-        )
-        .then(() => {
-            execute('sudo systemctl restart nginx').catch(console.log);
-            return freePort;
-        });
-};
-
-const removeVirtualHost = toolName => {
-    return execute(`sudo rm -rf ${nginxConfigDir}/lumi_${toolName}.conf`)
-        .then(() => {
-            execute('sudo systemctl restart nginx').catch(console.log);
-        })
-        .then(() => readJson('used_ports.json'))
-        .then(usedPorts => {
-            delete usedPorts[toolName];
-            return writeJson('used_ports.json', usedPorts);
-        });
-};
+const memory = (used, total) => ({
+    used: GB(used),
+    total: GB(total),
+    percentage: Math.round(used / total * 100) + '%'
+})
+const GB = n => Math.round((n / (1024 * 1024 * 1024)) * 100) / 100 + 'GB';
 
 const execute = command =>
     new Promise((y, n) => {
@@ -206,38 +46,55 @@ const execute = command =>
         });
     });
 
-const upload = (req, toPath) =>
-    new Promise(y => {
-        req.pipe(req.busboy);
-        fs.ensureDir(toPath);
+setInterval(() => {
+    if (Object.keys(subscriptions['/resources']).length)
+        update('/resources')
+}, 5000)
 
-        req.busboy.on('file', (fieldname, file, filename) => {
-            console.log(`Upload of '${filename}' started`);
 
-            const filePath = path.join(toPath, filename);
-            const fstream = fs.createWriteStream(filePath);
-            file.pipe(fstream);
+/**
+ * Infrastructure
+ */
 
-            fstream.on('close', () => {
-                console.log(`Upload of '${filePath}' finished`);
-                y(filePath);
-            });
-        });
+const port = process.env.PORT || 4200;
+
+const app = express();
+const server = app.listen(port, () =>
+    console.log(`Listening on http://localhost:${server.address().port}`));
+
+app.use(express.static(path.join(__dirname, 'static')))
+
+app.get('*', (req, res) => {
+    const query = req.path
+
+    if (!(query in queries)) return res.status(404).end('Not Found')
+
+    queries[query](req)
+        .then(result => res.json(result))
+        .catch(err => console.error(err) || res.status(500).end('Server Error'))
+
+});
+
+const subscriptions = Object.keys(queries).reduce((acc, i) => ({ ...acc, [i]: {} }), {})
+
+const update = query =>
+    queries[query]().then(result =>
+        Object.values(subscriptions[query]).forEach(client =>
+            client.emit('update', { query, result })))
+
+const io = socket(server);
+io.on('connection', client => {
+    client.on('subscribe', query => {
+        if (!(query in subscriptions)) return console.error('Not found: ' + query)
+        subscriptions[query][client.id] = client
+        update(query)
+        console.log('subscribed', query, client.id)
     });
-
-const readFile = path =>
-    new Promise((y, n) =>
-        fs.readFile(path, 'utf8', (err, data) => (err ? n(err) : y(data)))
-    );
-
-const readJson = path => readFile(path).then(JSON.parse);
-
-const writeFile = (path, data) =>
-    new Promise((y, n) =>
-        fs.writeFile(path, data, err => (err ? n(err) : y()))
-    );
-
-const writeJson = (path, data) => writeFile(path, JSON.stringify(data));
-
-const fileExists = path =>
-    new Promise((y, n) => fs.access(path, err => y(!err)));
+    client.on('unsubscribe', query => {
+        if (!(query in subscriptions)) return console.error('Not found: ' + query)
+        delete subscriptions[query][client.id]
+        console.log('unsubscribed', query, client.id)
+    });
+    client.on('disconnect', () =>
+        Object.values(subscriptions).forEach(sub => delete sub[client.id]))
+});
