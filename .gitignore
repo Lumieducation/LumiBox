@@ -1,10 +1,10 @@
 /.idea
-/node_modules
-/package-lock.json
 /.env
-/local/*
-/upload/*
-/used_ports.json
-*.lumi.tool
+/server/local/*
+/server/upload/*
+/server/used_ports.json
+/tool_builder/__packed
+node_modules
+package-lock.json
 image.tar
 build
