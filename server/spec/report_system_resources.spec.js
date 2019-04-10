@@ -8,7 +8,7 @@ test('registers query', () => {
         addQuery: jest.fn(),
     }
 
-    resources({ system, server })
+    resources({system}).installOn(server)
     expect(server.addQuery.mock.calls[0][0]).toBe('/resources')
 });
 
@@ -21,7 +21,7 @@ test('updates every 5 seconds', () => {
         emitUpdate: jest.fn()
     }
 
-    resources({ system, server })
+    resources({system}).installOn(server)
 
     expect(system.setInterval.mock.calls[0][1]).toBe(5000);
     expect(server.emitUpdate.mock.calls.length).toBe(0)
@@ -45,7 +45,7 @@ test('reads used disk space', () => {
         emitUpdate: jest.fn()
     }
 
-    resources({ system, server })
+    resources({system}).installOn(server)
 
     return q()
         .then(result => {
@@ -72,7 +72,7 @@ test('reads used memory', () => {
         emitUpdate: jest.fn()
     }
 
-    resources({ system, server })
+    resources({system}).installOn(server)
     
     return q()
         .then(result => {
