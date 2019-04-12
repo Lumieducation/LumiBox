@@ -20,8 +20,11 @@ beforeEach(() => {
 });
 
 class MockServer {
-    addQuery(_, query) {
-        this.query = query;
+    constructor() {
+        this.queries = {};
+    }
+    addQuery(key, query) {
+        this.queries[key] = query;
     }
 }
 
@@ -29,8 +32,12 @@ test('registers query', () => {
     const server = {
         addQuery: jest.fn()
     };
+    const system = {
+        execute: jest.fn().mockResolvedValue('\n'),
+        readFile: jest.fn().mockResolvedValue('{}')
+    };
 
-    tools({}).installOn(server);
+    tools({ system }).installOn(server);
     expect(server.addQuery.mock.calls[0][0]).toBe('/tools');
 });
 
@@ -41,7 +48,7 @@ test('no tools', () => {
     };
 
     tools({ system }).installOn(server);
-    return expect(server.query()).resolves.toEqual({ tools: [] });
+    return expect(server.queries['/tools']()).resolves.toEqual({ tools: [] });
 });
 
 test('stopped tools', () => {
@@ -58,7 +65,7 @@ test('stopped tools', () => {
     };
 
     tools({ system, toolsDir }).installOn(server);
-    return expect(server.query()).resolves.toEqual({
+    return expect(server.queries['/tools']()).resolves.toEqual({
         tools: [
             {
                 name: 'My Tool',
@@ -88,10 +95,37 @@ test('tool with icon', () => {
     };
 
     tools({ system, toolsDir }).installOn(server);
-    return server.query().then(result => 
-        expect(result.tools[0].icon).toEqual('//on.lumi.education/tools/my/icon.png'))
+    return server.queries['/tools']().then(result =>
+        expect(result.tools[0].icon).toEqual(
+            '//on.lumi.education/tools/my/icon.png'
+        )
+    );
 });
 
-test.todo('serve Tool icon');
+test('serve Tool icon', () => {
+    commands = {
+        'ls tools/dir': 'my'
+    };
+    files = {
+        'tools/dir/my/tool/meta.json': JSON.stringify({
+            name: 'My Tool',
+            icon: 'icon.png'
+        }),
+        'tools/dir/my/icon.png': '<image_data>'
+    };
+
+    return tools({ system, toolsDir })
+        .installOn(server)
+        .then(() => {
+            expect(Object.keys(server.queries)).toEqual([
+                '/tools',
+                '/tools/my/icon.png'
+            ]);
+
+            return server.queries['/tools/my/icon.png']().then(result =>
+                expect(result).toEqual('<image_data>')
+            );
+        });
+});
 
 test.todo('running Tool');
