@@ -1,10 +1,10 @@
 module.exports = ({ system }) => {
     class Tool {
-        constructor(key, name, iconFile) {
+        constructor(key, name, icon = null) {
             this.key = key;
             this.name = name;
 
-            this._iconFile = iconFile;
+            this.icon = icon;
         }
 
         status() {

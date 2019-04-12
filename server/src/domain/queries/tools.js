@@ -13,7 +13,7 @@ module.exports = ({ system, toolsDir }) => {
                     name: tool.name,
                     url: `//${tool.key}.on.lumi.education`,
                     status: 'stopped',
-                    icon: null
+                    icon: tool.icon ? `//on.lumi.education/tools/${tool.key}/${tool.icon}` : null
                 }))
             }))
         );

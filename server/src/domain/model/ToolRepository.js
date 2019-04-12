@@ -15,7 +15,7 @@ module.exports = ({ system, toolsDir }) => {
                         keys.map(key =>
                             readMetaFile(key).then(
                                 meta =>
-                                    new Tool(meta.__key, meta.name, meta.icon)
+                                    new Tool(key, meta.name, meta.icon)
                             )
                         )
                     )
@@ -31,7 +31,6 @@ module.exports = ({ system, toolsDir }) => {
         system
             .readFile(`${toolsDir}/${toolKey}/tool/meta.json`)
             .then(JSON.parse)
-            .then(meta => ({ ...meta, __key: toolKey }));
 
     return ToolRepository;
 };

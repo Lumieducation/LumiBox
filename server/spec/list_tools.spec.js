@@ -1,5 +1,24 @@
 const tools = require('../src/domain/queries/tools');
 
+let toolsDir, server, system, commands, files;
+
+beforeEach(() => {
+    toolsDir = 'tools/dir';
+    server = new MockServer();
+    system = {
+        execute: jest.fn(command =>
+            commands[command]
+                ? Promise.resolve(commands[command])
+                : Promise.reject('Command not found: ' + command)
+        ),
+        readFile: jest.fn(file =>
+            files[file]
+                ? Promise.resolve(files[file])
+                : Promise.reject('File not found: ' + file)
+        )
+    };
+});
+
 class MockServer {
     addQuery(_, query) {
         this.query = query;
@@ -16,7 +35,6 @@ test('registers query', () => {
 });
 
 test('no tools', () => {
-    const server = new MockServer();
     const system = {
         execute: jest.fn().mockResolvedValue('\n'),
         readFile: jest.fn().mockResolvedValue('{}')
@@ -27,24 +45,10 @@ test('no tools', () => {
 });
 
 test('stopped tools', () => {
-    const toolsDir = 'tools/dir';
-    const server = new MockServer();
-    const system = {
-        execute: jest.fn(command =>
-            commands[command]
-                ? Promise.resolve(commands[command])
-                : Promise.reject('Command not found: ' + command)
-        ),
-        readFile: jest.fn(file =>
-            files[file]
-                ? Promise.resolve(files[file])
-                : Promise.reject('File not found: ' + file)
-        )
-    };
-    const commands = {
+    commands = {
         'ls tools/dir': '\nmy\n\nother\n'
     };
-    const files = {
+    files = {
         'tools/dir/my/tool/meta.json': JSON.stringify({
             name: 'My Tool'
         }),
@@ -72,7 +76,21 @@ test('stopped tools', () => {
     });
 });
 
-test.todo('tool with icon');
+test('tool with icon', () => {
+    commands = {
+        'ls tools/dir': 'my'
+    };
+    files = {
+        'tools/dir/my/tool/meta.json': JSON.stringify({
+            name: 'My Tool',
+            icon: 'icon.png'
+        })
+    };
+
+    tools({ system, toolsDir }).installOn(server);
+    return server.query().then(result => 
+        expect(result.tools[0].icon).toEqual('//on.lumi.education/tools/my/icon.png'))
+});
 
 test.todo('serve Tool icon');
 
