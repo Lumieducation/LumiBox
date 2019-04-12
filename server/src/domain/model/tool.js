@@ -1,6 +1,6 @@
 module.exports = ({ system }) => {
     class Tool {
-        construct(key, name, iconFile) {
+        constructor(key, name, iconFile) {
             this.key = key;
             this.name = name;
 

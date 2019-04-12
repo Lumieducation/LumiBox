@@ -5,7 +5,7 @@
     "scripts": {
         "start": "node src/main.js",
         "test": "jest",
-        "format": "prettier -c 'src/**/*.js' --write"
+        "format": "prettier -c src/**/*.js -c spec/**/*.js --write"
     },
     "devDependencies": {
         "jest": "^24.7.1",

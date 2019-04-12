@@ -1,5 +1,5 @@
 module.exports = ({ system, toolsDir }) => {
-    const Tool = require('./tool')({ system });
+    const Tool = require('./Tool')({ system });
 
     class ToolRepository {
         constructor(system) {
@@ -10,8 +10,16 @@ module.exports = ({ system, toolsDir }) => {
             return system
                 .execute(`ls ${toolsDir}`)
                 .then(output => output.split('\n').filter(s => s.length))
-                .then(keys => Promise.all(keys.map(readMetaFile)))
-                .then(meta => new Tool(meta.__key, meta.name, meta.icon));
+                .then(keys =>
+                    Promise.all(
+                        keys.map(key =>
+                            readMetaFile(key).then(
+                                meta =>
+                                    new Tool(meta.__key, meta.name, meta.icon)
+                            )
+                        )
+                    )
+                );
         }
 
         install(toolFile) {}
