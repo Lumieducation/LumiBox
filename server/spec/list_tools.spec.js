@@ -71,3 +71,9 @@ test('stopped tools', () => {
         ]
     });
 });
+
+test.todo('tool with icon');
+
+test.todo('serve Tool icon');
+
+test.todo('running Tool');
