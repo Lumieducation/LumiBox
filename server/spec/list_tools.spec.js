@@ -6,16 +6,17 @@ beforeEach(() => {
     toolsDir = 'tools/dir';
     server = new MockServer();
     system = {
-        execute: jest.fn(command =>
+        execute: command =>
             commands[command]
                 ? Promise.resolve(commands[command])
-                : Promise.reject('Command not found: ' + command)
+                : Promise.reject('Command not found: ' + command
         ),
-        readFile: jest.fn(file =>
+        readFile: file =>
             files[file]
                 ? Promise.resolve(files[file])
-                : Promise.reject('File not found: ' + file)
-        )
+                : Promise.reject('File not found: ' + file
+        ),
+        fileExists: file => Promise.resolve(file in files)
     };
 });
 
@@ -53,7 +54,9 @@ test('no tools', () => {
 
 test('stopped tools', () => {
     commands = {
-        'ls tools/dir': '\nmy\n\nother\n'
+        'ls tools/dir': '\nmy\n\nother\n',
+        'cd tools/dir/my && sh tool/status.sh': '0',
+        'cd tools/dir/other && sh tool/status.sh': '0',
     };
     files = {
         'tools/dir/my/tool/meta.json': JSON.stringify({
@@ -85,7 +88,8 @@ test('stopped tools', () => {
 
 test('tool with icon', () => {
     commands = {
-        'ls tools/dir': 'my'
+        'ls tools/dir': 'my',
+        'cd tools/dir/my && sh tool/status.sh': '0'
     };
     files = {
         'tools/dir/my/tool/meta.json': JSON.stringify({
@@ -104,7 +108,8 @@ test('tool with icon', () => {
 
 test('serve Tool icon', () => {
     commands = {
-        'ls tools/dir': 'my'
+        'ls tools/dir': 'my',
+        'cd tools/dir/my && sh tool/status.sh': '0'
     };
     files = {
         'tools/dir/my/tool/meta.json': JSON.stringify({
@@ -128,4 +133,17 @@ test('serve Tool icon', () => {
         });
 });
 
-test.todo('running Tool');
+test('running Tool', () => {
+    commands = {
+        'ls tools/dir': 'my',
+        'cd tools/dir/my && sh tool/status.sh': 'anything'
+    };
+    files = {
+        'tools/dir/my/tool/meta.json': JSON.stringify({})
+    };
+
+    tools({ system, toolsDir }).installOn(server);
+    return server.queries['/tools']().then(result =>
+        expect(result.tools[0].status).toEqual('running')
+    );
+});

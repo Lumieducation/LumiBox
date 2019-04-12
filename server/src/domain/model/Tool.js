@@ -1,4 +1,4 @@
-module.exports = ({ system }) => {
+module.exports = ({ system, toolsDir }) => {
     class Tool {
         constructor(key, name, icon = null) {
             this.key = key;
@@ -9,7 +9,7 @@ module.exports = ({ system }) => {
 
         status() {
             return system
-                .fileExists(`${toolsDir}/${tool.key}/__installing.lock`)
+                .fileExists(`${toolsDir}/${this.key}/__installing.lock`)
                 .then(hasLock => {
                     if (hasLock) return Tool.status.installing;
                     return system

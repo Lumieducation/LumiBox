@@ -1,5 +1,5 @@
 module.exports = ({ system, toolsDir }) => {
-    const Tool = require('./Tool')({ system });
+    const Tool = require('./Tool')({ system, toolsDir });
 
     class ToolRepository {
         constructor(system) {
