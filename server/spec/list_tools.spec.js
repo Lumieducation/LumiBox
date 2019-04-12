@@ -1,8 +1,9 @@
 const tools = require('../src/domain/queries/tools');
 
-let toolsDir, server, system, commands, files;
+let hostName, toolsDir, server, system, commands, files;
 
 beforeEach(() => {
+    hostName = 'host.name'
     toolsDir = 'tools/dir';
     server = new MockServer();
     system = {
@@ -67,19 +68,19 @@ test('stopped tools', () => {
         })
     };
 
-    tools({ system, toolsDir }).installOn(server);
+    tools({ system, toolsDir, hostName }).installOn(server);
     return expect(server.queries['/tools']()).resolves.toEqual({
         tools: [
             {
                 name: 'My Tool',
                 status: 'stopped',
-                url: '//my.on.lumi.education',
+                url: '//my.host.name',
                 icon: null
             },
             {
                 name: 'Other Tool',
                 status: 'stopped',
-                url: '//other.on.lumi.education',
+                url: '//other.host.name',
                 icon: null
             }
         ]
@@ -98,10 +99,10 @@ test('tool with icon', () => {
         })
     };
 
-    tools({ system, toolsDir }).installOn(server);
+    tools({ system, toolsDir, hostName }).installOn(server);
     return server.queries['/tools']().then(result =>
         expect(result.tools[0].icon).toEqual(
-            '//on.lumi.education/tools/my/icon.png'
+            '//host.name/tools/my/icon.png'
         )
     );
 });

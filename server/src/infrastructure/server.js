@@ -41,7 +41,7 @@ app.get('*', (req, res) => {
     if (!(query in queries)) return res.status(404).end('Not Found');
 
     queries[query](req)
-        .then(result => res.json(result))
+        .then(result => res.end(result))
         .catch(
             err => console.error(err) || res.status(500).end('Server Error')
         );

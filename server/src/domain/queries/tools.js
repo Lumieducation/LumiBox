@@ -1,4 +1,4 @@
-module.exports = ({ system, toolsDir }) => {
+module.exports = ({ system, toolsDir, hostName }) => {
     const ToolsRepository = require('../model/ToolRepository')({
         system,
         toolsDir
@@ -13,9 +13,9 @@ module.exports = ({ system, toolsDir }) => {
                 tool.status().then(status =>
                     ({
                         name: tool.name,
-                        url: `//${tool.key}.on.lumi.education`,
+                        url: `//${tool.key}.${hostName}`,
                         status: status,
-                        icon: tool.icon ? `//on.lumi.education/tools/${tool.key}/${tool.icon}` : null
+                        icon: tool.icon ? `//${hostName}/tools/${tool.key}/${tool.icon}` : null
                     }))))
                 .then(tools => ({ tools }))));
 

@@ -19,11 +19,11 @@ const execute = command =>
 module.exports = {
     execute,
     freemem: os.freemem,
-    totalmem: os.freemem,
+    totalmem: os.totalmem,
     setInterval,
     readFile: path =>
         new Promise((y, n) =>
-            fs.readFile(path, 'utf8', (err, data) => (err ? n(err) : y(data)))
+            fs.readFile(path, null, (err, data) => (err ? n(err) : y(data)))
         ),
     writeFile: (path, data) =>
         new Promise((y, n) =>

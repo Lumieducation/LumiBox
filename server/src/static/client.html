@@ -6,12 +6,19 @@
 </head>
 
 <body>
+    <h2>Tools</h2>
+    <pre id="tools"></pre>
+
+    <h2>Resource Status</h2>
     <pre id="resources">
     </pre>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         var subscriptions = {
+            '/tools': function (result) {
+                document.getElementById('tools').innerHTML = JSON.stringify(result, null, 2)
+            },
             '/resources': function (result) {
                 document.getElementById('resources').innerHTML = JSON.stringify(result, null, 2)
             }
