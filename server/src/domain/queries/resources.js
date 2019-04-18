@@ -5,7 +5,7 @@ module.exports = ({ system }) => {
     };
 
     const query = () =>
-        Promise.all([readMemory(), readDisk()]).then(([memory, disk]) => ({
+        Promise.all([readMemory(), readDisk()]).then(([memory, disk]) => JSON.stringify({
             date: new Date().toISOString(),
             disk,
             memory

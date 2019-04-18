@@ -17,7 +17,7 @@ module.exports = ({ system, toolsDir, hostName }) => {
                         status: status,
                         icon: tool.icon ? `//${hostName}/tools/${tool.key}/${tool.icon}` : null
                     }))))
-                .then(tools => ({ tools }))));
+                .then(tools => JSON.stringify({ tools }))));
 
         return repository.tools().then(tools => tools.forEach(tool => {
             if (!tool.icon) return
