@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+</head>
+
+<body>
+    <h2><a href="/tools">Tools</a></h2>
+    <pre id="tools"></pre>
+
+    <h2><a href="/resources">Resource Status</a></h2>
+    <pre id="resources">
+    </pre>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var subscriptions = {
+            '/tools': renderInside('tools'),
+            '/resources': renderInside('resources')
+        }
+
+        function renderInside(elementId) {
+            return function (result) {
+                document.getElementById(elementId).innerHTML = JSON.stringify(JSON.parse(result), null, 2)
+            }
+        }
+
+        var socket = io('http://' + window.location.host);
+        socket.on('connect', function () {
+            var keys = Object.keys(subscriptions);
+            for (var i=0; i<keys.length; i++) {
+                socket.emit('subscribe', keys[i])
+            }
+        });
+        socket.on('update', function (data) {
+            if (subscriptions[data.query]) {
+                subscriptions[data.query](data.result)
+            }
+        });
+        socket.on('disconnect', function () { 
+            console.log('socket::disconnect') 
+        });
+    </script>
+</body>
+
+</html>

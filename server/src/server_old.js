@@ -5,7 +5,6 @@ const fs = require('fs-extra');
 const whiskers = require('whiskers');
 const os = require('os');
 
-const sys = require('sys');
 const exec = require('child_process').exec;
 
 require('dotenv').config();
@@ -23,64 +22,6 @@ const app = express();
 app.use(busboy({ highWaterMark: 2 * 1024 * 1024 }));
 app.engine('.html', whiskers.__express);
 app.set('views', __dirname + '/views');
-
-app.get('/', (req, res) => {
-    const GB = n => Math.round((n / (1024 * 1024 * 1024)) * 100) / 100 + 'GB';
-    var perc = Math.round((os.freemem() / os.totalmem()) * 100);
-
-    execute('df -h /').then(space =>
-        execute(`ls ${toolsDir}`)
-            .then(tools =>
-                Promise.all(
-                    tools
-                        .toString()
-                        .split('\n')
-                        .filter(s => s.length)
-                        .map(tool =>
-                            readJson(`${toolsDir}/${tool}/tool/meta.json`)
-                        )
-                )
-            )
-            .then(tools =>
-                Promise.all(
-                    tools.map(tool =>
-                        fileExists(`${toolsDir}/${tool.name}/__installing.lock`)
-                            .then(installing =>
-                                installing
-                                    ? 'pending'
-                                    : execute(
-                                          `cd ${toolsDir}/${
-                                              tool.name
-                                          } && sh tool/status.sh`
-                                      ).then(status =>
-                                          status != '0' ? 'running' : 'stopped'
-                                      )
-                            )
-                            .then(status => ({
-                                ...tool,
-                                status,
-                                installed: status != 'pending',
-                                running: status == 'running'
-                            }))
-                    )
-                )
-            )
-            .then(tools =>
-                res.render('index.html', {
-                    space: space.toString(),
-                    memory:
-                        GB(os.freemem()) +
-                        ' / ' +
-                        GB(os.totalmem()) +
-                        ' (' +
-                        perc +
-                        '%)',
-                    tools: tools,
-                    boxDomain
-                })
-            )
-    );
-});
 
 app.route('/install').post((req, res) => {
     const tmpFolder = path.join('upload', '_tmp' + Date.now());
@@ -196,16 +137,6 @@ const removeVirtualHost = toolName => {
         });
 };
 
-const execute = command =>
-    new Promise((y, n) => {
-        console.log('executing:', command);
-        exec(command, (err, stdout, stderr) => {
-            if (err) return n(stderr.toString());
-            console.log('result:', stdout.toString().trim(), stderr.toString());
-            y(stdout.toString().trim());
-        });
-    });
-
 const upload = (req, toPath) =>
     new Promise(y => {
         req.pipe(req.busboy);
@@ -224,20 +155,3 @@ const upload = (req, toPath) =>
             });
         });
     });
-
-const readFile = path =>
-    new Promise((y, n) =>
-        fs.readFile(path, 'utf8', (err, data) => (err ? n(err) : y(data)))
-    );
-
-const readJson = path => readFile(path).then(JSON.parse);
-
-const writeFile = (path, data) =>
-    new Promise((y, n) =>
-        fs.writeFile(path, data, err => (err ? n(err) : y()))
-    );
-
-const writeJson = (path, data) => writeFile(path, JSON.stringify(data));
-
-const fileExists = path =>
-    new Promise((y, n) => fs.access(path, err => y(!err)));

@@ -3,10 +3,12 @@
     "version": "0.0.1",
     "description": "Manage the LumiBox",
     "scripts": {
-        "start": "node src/server.js",
-        "format": "prettier -c 'src/**/*.js' --write"
+        "start": "node src/main.js",
+        "test": "jest",
+        "format": "prettier -c src/**/*.js -c spec/**/*.js --write"
     },
     "devDependencies": {
+        "jest": "^24.7.1",
         "prettier": "1.16.4"
     },
     "dependencies": {
@@ -14,6 +16,6 @@
         "dotenv": "^6.2.0",
         "express": "^4.16.4",
         "fs-extra": "^7.0.1",
-        "whiskers": "^0.4.0"
+        "socket.io": "^2.2.0"
     }
 }

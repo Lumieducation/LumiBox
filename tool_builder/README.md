@@ -34,7 +34,7 @@ Create a compressed tar file that can be installed on box
 
 	|-package               // content of the tar file
 	| |-tool
-	| | |-meta.json					// contains information about the tool
+	| | |-meta.json         // contains information about the tool
 	| | |-install.sh
 	| | |-remove.sh
 	| | |-start.sh
@@ -52,5 +52,6 @@ Create a compressed tar file that can be installed on box
 ### meta.json
 
 	{
-		"name": "foo"
+		"name": "foo",
+		"icon": "path/to/icon.file" // relative to 'package'
 	}

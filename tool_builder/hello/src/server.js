@@ -4,7 +4,7 @@ const port = process.env.PORT || 3000;
 
 const requestHandler = (request, response) => {
     console.log(request.url);
-    response.end('Hello Lumi Box!');
+    response.end('Hello Lumi!');
 };
 
 const server = http.createServer(requestHandler);
